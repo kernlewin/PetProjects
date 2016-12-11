@@ -60,7 +60,7 @@ public final class Complex {
 
 	//Operators.  Note that ALL of these create a new Complex number with the resultant value.
 	//This class is immutable
-	public Complex<Number> add()
+	public Complex add()
 	{
 		return null;
 	}
