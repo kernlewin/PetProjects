@@ -6,7 +6,7 @@ import java.math.BigInteger;
 /*
  * This defines the operations supported on complex numbers.
  * 
- *  The class uses my GeneralNumber class to support operations between any primitive numeric
+ *  The class uses my BigNumber class to support operations between any primitive numeric
  *  types, or BigInteger or BigDecimal (or combinations) without using unnecessary storage, losing
  *  accuracy, or requiring casting.
  *  
@@ -16,28 +16,28 @@ import java.math.BigInteger;
 //Make the class final; subclasses could make it mutable
 public final class Complex {
 	//All fields private and final
-	private final GeneralNumber mReal;
-	private final GeneralNumber mImaginary;
+	private final BigNumber mReal;
+	private final BigNumber mImaginary;
 
 	//Create a complex number.  Note that due to Autoboxing,
 	//this constructor can take any primitive numeric type (byte, short, long, int, float or double)
 	//as well as BigInteger and BigDecimal objects.
 	public Complex(Number real, Number imaginary)
 	{
-		mReal = new GeneralNumber(real);
-		mImaginary = new GeneralNumber(imaginary);
+		mReal = new BigNumber(real);
+		mImaginary = new BigNumber(imaginary);
 	}
 
-	//Getters:  Note that the GeneralNumber class is immutable; don't have to worry about
+	//Getters:  Note that the BigNumber class is immutable; don't have to worry about
 	//exposing anything here
-	public Number getReal()
+	public BigNumber getReal()
 	{
-		return mReal.getValue();
+		return mReal;
 	}
 
-	public Number getImaginary()
+	public BigNumber getImaginary()
 	{
-		return mImaginary.getValue();
+		return mImaginary;
 	}
 
 	//String representation
@@ -147,97 +147,33 @@ public final class Complex {
 	//This class is immutable
 	public Complex add(Complex arg)
 	{
-		Number realResult = null;
-		Number imaginaryResult = null;
-
-		switch (mType)
-		{
-		case INTEGER:
-			realResult = new Long( getReal().longValue() + arg.getReal().longValue());
-			imaginaryResult = new  Long( getImaginary().longValue() + arg.getImaginary().longValue());
-			break;
-		case BIGINTEGER:
-			BigInteger arg1 = (BigInteger)getReal();
-			BigInteger arg2 = (BigInteger)arg.getReal();
-			realResult = arg1.add(arg2);
-
-			arg1 = (BigInteger)getImaginary();
-			arg2 = (BigInteger)arg.getImaginary();
-			imaginaryResult = arg1.add(arg2);
-			break;
-		case BIGREAL:
-			BigDecimal arg3 = (BigDecimal)getReal();
-			BigDecimal arg4 = (BigDecimal)arg.getReal();
-			realResult = arg3.add(arg4);
-
-			arg3 = (BigDecimal)getImaginary();
-			arg4 = (BigDecimal)arg.getImaginary();
-			imaginaryResult = arg3.add(arg4);
-			break;
-		default:  //OpType.REAL
-			realResult = new Double( getReal().doubleValue() + arg.getReal().doubleValue());
-			imaginaryResult = new  Double( getImaginary().doubleValue() + arg.getImaginary().doubleValue());
-			break;			
-		}
-
+		BigNumber realResult = getReal().add(arg.getReal());
+		BigNumber imaginaryResult = getImaginary().add(arg.getImaginary());
+		
 		return new Complex(realResult, imaginaryResult);
 	}
 
 	public Complex subtract(Complex arg)
 	{
-		Number realResult = null;
-		Number imaginaryResult = null;
-
-		switch (mType)
-		{
-		case INTEGER:
-			realResult = new Long( getReal().longValue() - arg.getReal().longValue());
-			imaginaryResult = new  Long( getImaginary().longValue() - arg.getImaginary().longValue());
-			break;
-		case BIGINTEGER:
-			BigInteger arg1 = (BigInteger)getReal();
-			BigInteger arg2 = (BigInteger)arg.getReal();
-			realResult = arg1.subtract(arg2);
-
-			arg1 = (BigInteger)getImaginary();
-			arg2 = (BigInteger)arg.getImaginary();
-			imaginaryResult = arg1.subtract(arg2);
-			break;
-		case BIGREAL:
-			BigDecimal arg3 = (BigDecimal)getReal();
-			BigDecimal arg4 = (BigDecimal)arg.getReal();
-			realResult = arg3.subtract(arg4);
-
-			arg3 = (BigDecimal)getImaginary();
-			arg4 = (BigDecimal)arg.getImaginary();
-			imaginaryResult = arg3.subtract(arg4);
-			break;
-		default:  //OpType.REAL
-			realResult = new Double( getReal().doubleValue() - arg.getReal().doubleValue());
-			imaginaryResult = new  Double( getImaginary().doubleValue() - arg.getImaginary().doubleValue());
-			break;			
-		}
-
+		BigNumber realResult = getReal().subtract(arg.getReal());
+		BigNumber imaginaryResult = getImaginary().subtract(arg.getImaginary());
+		
 		return new Complex(realResult, imaginaryResult);
-
 	}
 
 	public Complex multiply(Complex arg)
 	{
 		 //Note:  (a + bi)(c + di) = (ac-bd) + (ad+bc)i
 	
-		switch (mType)
-		{
-		case INTEGER:
-			break;
-		case BIGINTEGER:
-			break;
-		case BIGREAL:
-			break;
-		default:  //OpType.REAL
-		}
-
-		return null;
+		BigNumber a = getReal();
+		BigNumber b = getImaginary();
+		BigNumber c = arg.getReal();
+		BigNumber d = arg.getImaginary();
+		
+		BigNumber realResult = a.multiply(c).subtract(b.multiply(d));
+		BigNumber imaginaryResult = a.multiply(d).add(b.multiply(c));
+		
+		return new Complex(realResult, imaginaryResult);
 	}
 
 	public Complex divide(Complex arg)
