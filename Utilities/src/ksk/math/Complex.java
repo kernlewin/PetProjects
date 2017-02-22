@@ -180,34 +180,27 @@ public final class Complex {
 	{
 		//Using difference of squares to make the denominator real:
 		//(a + bi)/(c + di) = [(ac+bd) + (bc-ad)i] / [c^2 + d^2]
-		
-		switch (mType)
-		{
-		case INTEGER:
-			break;
-		case BIGINTEGER:
-			break;
-		case BIGREAL:
-			break;
-		default:  //OpType.REAL
-		}
 
-		return null;
+		BigNumber a = getReal();
+		BigNumber b = getImaginary();
+		BigNumber c = arg.getReal();
+		BigNumber d = arg.getImaginary();
+
+		BigNumber realResult = a.multiply(c).add( b.multiply(d));
+		BigNumber imaginaryResult = b.multiply(c).subtract(a.multiply(d));
+		BigNumber denominator = c.multiply(c).add(d.multiply(d));
+		
+		realResult = realResult.divide(denominator);
+		imaginaryResult = imaginaryResult.divide(denominator);
+		
+		return new Complex (realResult, imaginaryResult);
 	}
 
 	public Complex power(double exp)
 	{
-		switch (mType)
-		{
-		case INTEGER:
-			break;
-		case BIGINTEGER:
-			break;
-		case BIGREAL:
-			break;
-		default:  //OpType.REAL
-		}
-
+		//TODO
+		
+		
 		return null;
 	}
 
