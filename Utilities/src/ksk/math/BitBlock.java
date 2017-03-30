@@ -1,6 +1,7 @@
 package ksk.math;
 
 import java.util.BitSet;
+import java.util.Random;
 
 /*
  * A BitBlock is like a BitSet, but with size that is fixed from the moment of construction.
@@ -13,16 +14,19 @@ import java.util.BitSet;
  * Rather than extending BitSet, BitBlock will maintain a BitSet field.
  * (HAS-A BitSet, not IS-A BitSet)
  * 
+ * For efficiency, this class is mutable; we don't want to construct a brand-new object everytime a bit gets twiddled
+ * 
  */
 
 public class BitBlock {
 	private int mLength;
 	private BitSet mBits;
 
-	//Constructor:  Zero BitBLock
+	//Constructor:  BitBLock
 	public BitBlock(int length)
 	{
-		this(null, length);
+		mBits = new BitSet();
+		mLength = length;
 	}
 
 	//Constructor:  BitBlock containing a long value
@@ -222,32 +226,32 @@ public class BitBlock {
 
 
 	//Logical operation methods
-	boolean isEmpty()
+	public boolean isEmpty()
 	{
 		return mBits.isEmpty();
 	}
 
-	boolean intersects(BitBlock block)
+	public boolean intersects(BitBlock block)
 	{
 		return mBits.intersects(block.mBits);
 	}
 
-	void xor(BitBlock block)
+	public void xor(BitBlock block)
 	{
 		mBits.xor(block.mBits);
 	}
 
-	void and(BitBlock block)
+	public void and(BitBlock block)
 	{
 		mBits.andNot(block.mBits);
 	}
 
-	void or(BitBlock block)
+	public void or(BitBlock block)
 	{
 		mBits.or(block.mBits);
 	}
 
-	void not()
+	public void not()
 	{
 		mBits.flip(0, mLength);
 	}
@@ -359,6 +363,23 @@ public class BitBlock {
 		}
 	}
 
+	//Set all of the bits in the BitBlock to random values
+	public void randomize()
+	{
+		Random r = new Random();
+		
+		for (int i=0; i<mLength; i++)
+		{
+			if (r.nextDouble()>0.5)
+			{
+				set(i);
+			}
+			else
+			{
+				clear(i);
+			}
+		}
+	}
 
 	//Miscellaneous methods
 
@@ -477,33 +498,22 @@ public class BitBlock {
 	//Convert BitBlock to a String of Hex digits
 	public String toHexString()
 	{
-		//Get an array of Bytes
-		byte[] bytes = mBits.toByteArray();
-
 		String result = "";
-		for (int i=0; i<bytes.length; i++)
+		
+		//Loop through all of the "nibbles" in the BitBlock
+		for (int index = 0; index < mLength; index += 4)
 		{
-			//Two digits per byte
-			for (int nib=0; nib<2; nib++)
-			{
-				int digit = bytes[i]&0x0F;
-
-				if ((digit>=0)&&(digit<=9))
-				{
-					result += (digit + '0');
-				}
-				else if ((digit>=10)&&(digit<=15))
-				{
-					result += (digit - 10 + 'a');
-				}
-				else
-				{
-					result += '-';
-				}
-			}
+			//Get the nibble
+			long nibble = toLong(index, index+4);
 			
-			//Shift the byte
-			bytes[i] >>= 4;
+			if (nibble <10)
+			{
+				result += (char)(nibble + '0');
+			}
+			else
+			{
+				result += (char)(nibble -10 + 'A');
+			}
 		}
 
 		return result;		
@@ -512,18 +522,50 @@ public class BitBlock {
 	//Convert BitBlock to a Text String
 	public String toTextString()
 	{
-		//Get an array of Bytes
-		byte[] bytes = mBits.toByteArray();
-
+		return toTextString(Character.SIZE);
+	}
+	
+	public String toTextString(int bitsPerCharacter)
+	{
 		String result = "";
-		for (int i=0; i<bytes.length; i++)
+
+		//Loop through all of the characters in the BitBlock
+		for (int index = 0; index < mLength; index += bitsPerCharacter)
 		{
-			result += (char)bytes[i];
+			result += (char)toLong(index, index+bitsPerCharacter);
 		}
 
 		return result;
 	}
 
+	//Get a subset of the bits as a long value
+	//Convert the first 64 bits (if available) to a long
+	public long toLong()
+	{
+		return toLong(0);
+	}
+
+	//Convert the first 64 bits starting from the given index (if available) to a long
+	public long toLong(int from)
+	{
+		return toLong(from, from + Long.SIZE);
+	}
+	
+	//Convert the specified range of bits to a long
+	//If the range is longer than 64 bits, only 64 bits will be used
+	//Note that starting index is inclusive, ending is exclusive
+	public long toLong(int from, int to)
+	{
+		long[] value = mBits.get(from,to).toLongArray();
+		
+		if ((value != null)&&(value.length>0))
+		{
+			return value[0];
+		}
+		
+		return 0;
+	}
+	
 	//Basically just wrappers on BitSet methods to get an array of values
 	public long[] toLongArray()
 	{
@@ -534,5 +576,6 @@ public class BitBlock {
 	{
 		return mBits.toByteArray();
 	}
+	
 
 }
