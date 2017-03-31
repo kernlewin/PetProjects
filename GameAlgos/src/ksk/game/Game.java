@@ -15,54 +15,57 @@ import java.util.Set;
 
 public abstract class Game {
 
+	//Game class supports turn-based or simultaneous games
+	//Simultaneous games will use a separate thread for each player
+	public static enum PlayStyle {TURN_BASED, SIMULTANEOUS};
+
 	//Current game state
 	protected GameState mState;
 
 	//List of active players
 	protected Set<Player> mPlayers;
 
+	//Play style
+	protected PlayStyle mPlayStyle;
+
 	//Current turn (where applicable)
 	protected Player mTurn;
 
+
 	//Constructor; call the implementation-specific "reset()" method to initialize
-	public Game()
+	public Game(PlayStyle style)
 	{
 		//Empty player list
 		mPlayers = new HashSet<Player>();
 		mState = null;
 		mTurn = null;
+		mPlayStyle = style;
 		reset();
 	}
 
-
-	//A "move" will be implemented by providing an index to the list of possible next
-	//states.  If the index is valid, then the GameState object will do whatever needs to be
-	//done to accomplish this state transition.  Returns true if the move was legal, otherwise
-	//false.  Note that optionally this method can also take a parameter indicating who's
-	//trying to make the move.  This allows child classes to make sure that people don't move
-	//out of turn.
-	public final boolean move(Player caller, GameState nextState)
+	//Default playstyle is simultaneous
+	public Game()
 	{
-		if ( ((caller == null)||(caller.equals(mTurn)))
-				&& (mState.isValidNextState(nextState)) )
-		{
-			//Call implementation-specific method to actually process the move
-			//It is responsible for any consequences of the move, including updating the
-			//turn, eliminating inactive players, etc.
-			if (implementMove(caller, nextState))
-			{
-				mState = nextState;
-				return true;
-			}
-		}
-
-		return false;
-
+		this(PlayStyle.SIMULTANEOUS);
 	}
 
-	public final boolean move(GameState nextState)
+	//This method is used by Players attempting to make a move
+	//If the Move is valid, then we will apply it, resulting in a new GameState.
+	//Returns true if the move was legal, otherwise
+	//false.
+	public final boolean submitMove(Move m)
 	{
-		return move(null, nextState);
+		Player caller = m.getPlayer();
+
+		if ((caller.equals(mTurn)) && (mState.isValidMove(m)) )
+		{
+			//Call implementation-specific method to actually process the move
+			GameState nextState = mState.apply(m);
+			
+			return (nextState != null)?true:false;
+		}
+		
+		return false;
 	}
 
 	//Method to add/remove players from the active list
@@ -92,7 +95,7 @@ public abstract class Game {
 
 	//Child classes need to override this if there's anything they need to do other than just
 	//changing states.  Return true if the transition is approved, othewise, false
-	protected abstract boolean implementMove(Player caller, GameState nextState);
+	protected abstract GameState implementMove(Player caller, Move move);
 }
 
 

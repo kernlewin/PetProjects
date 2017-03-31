@@ -10,7 +10,7 @@ import java.util.List;
 public abstract class GameState {
 
 	//Maintain a list of possible next states (this may change as the game goes on)
-	private List<GameState> mNextStates;
+	private List<Move> mNextMoves;
 	
 	//Constructor; optionally populate the list of possible next states
 	//If it's not done at construction time, it will be done "just in time"
@@ -18,28 +18,28 @@ public abstract class GameState {
 	{
 		if (lookahead > 0)
 		{
-			mNextStates = new ArrayList<GameState>();
-			populateNextStates(lookahead-1);
+			mNextMoves = new ArrayList<Move>();
+			populateNextMoves(lookahead-1);
 		}
 		else
 		{
-			mNextStates = null;
+			mNextMoves = null;
 		}
 	}
 
 
 	//Get a list of the possible state transitions
-	public GameState[] getNextStates()
+	public Move[] getNextMoves()
 	{
-		if (mNextStates==null)
+		if (mNextMoves==null)
 		{
-			populateNextStates();
+			populateNextMoves(1);
 		}
 		
-		GameState[] result = new GameState[mNextStates.size()];
+		Move[] result = new Move[mNextMoves.size()];
 		
 		int i=0;
-		for (Iterator<GameState> iter = mNextStates.iterator(); iter.hasNext();)
+		for (Iterator<Move> iter = mNextMoves.iterator(); iter.hasNext();)
 		{
 			result[i++] = iter.next();
 		}
@@ -48,9 +48,9 @@ public abstract class GameState {
 	}
 
 	//Check if a particular next state is a valid transition from this one
-	public boolean isValidNextState(GameState state)
+	public boolean isValidMove(Move move)
 	{
-		return mNextStates.contains(state);
+		return mNextMoves.contains(move);
 	}
 	
 	
@@ -58,6 +58,12 @@ public abstract class GameState {
 	 * Abstract methods
 	 ***************************/
 	
-	//Abstract method to populate the list of possible next states
-	protected abstract void populateNextStates(int lookahead);
+	//Abstract method to populate the list of possible moves from this GameState
+	protected abstract void populateNextMoves(int lookahead);
+	
+	//Apply this move to the current GameState.
+	//Returns the resulting GameState, or null if the move is illegal
+	//Note that this method must update the turn, if applicable
+	public abstract GameState applyMove(GameState state);	
+
 }
