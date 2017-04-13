@@ -10,6 +10,8 @@ public class Week1 {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
+		//Run the multiple-use OTP problem solution
+		multiPad();
 	}
 
 
@@ -37,6 +39,9 @@ public class Week1 {
 				"32510ba9babebbbefd001547a810e67149caee11d945cd7fc81a05e9f85aac650e9052ba6a8cd8257bf14d13e6f0a803b54fde9e77472dbff89d71b57bddef121336cb85ccb8f3315f4b52e301d16e9f52f904"
 				};
 
+		//Here is a list of all of the plaintext characters we recognize (in no particular order)
+		//String plaintextChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,;:![]()+-*/_";
+		String plaintextChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		//Get an array of bytes for each cipherText
 		byte[][] cipherBytes = new byte[cipherTexts.length][];
 		for (int i=0; i<cipherBytes.length; i++)
@@ -53,36 +58,95 @@ public class Week1 {
 				keyLength = cipherTexts[i].length();
 			}
 		}
-		//keyLength in bytes is half of the length of the longest string
+		//Convert the keyLength to bytes 
 		keyLength /= 2;
+
+		//Build an empty key
+		long[] keyBytes = new long[keyLength];
+		for (int i=0; i<keyBytes.length; i++)
+		{
+			keyBytes[i] = 0;
+		}
 
 		//Loop through all of the bytes of cipherText (use the longest)
 		for (int byteNum = 0; byteNum < keyLength; byteNum++)
 		{
-			//Variables to keep track of a tentative keyMatch; when we XOR two ciphers and get a letter,
-			//remember the letter we cound, as well as which ciphers we used to find it
-			int foundLetter = -1;
-			int spaceCandidate = -1;
+			//Keep track of the most successful key candidate we've found for this byte
+			int bestKeyByte = 0;
+			int mostLettersDecoded = 0;
 
 			//Loop through pairs of cipherTexts
 			for (int c1 = 0; c1 < cipherBytes.length; c1++)
 			{
-				for (int c2 = c1+1; c2 < cipherBytes.length; c2++)
+				//Loop through all of our plaintext guesses for c1
+				for (int i=0; i<plaintextChars.length(); i++)
 				{
-					//Xor the current byte of the two blocks together; if the result is a letter then one of the two must be a space.
-					int byte1 = cipherBytes[c1][byteNum];
-					int byte2 = cipherBytes[c2][byteNum];
+					int keyByteCandidate = 0;
 
-					int plainXOR = byte1^byte2;
+					//Loop through all of the other ciphers, and count how many will be
+					//decoded to a letter if we use this key byte
+					int lettersDecoded = 0;
 
-					if ( ((plainXOR >= 'a')&&(plainXOR <= 'z')) || ((plainXOR >= 'A')&&(plainXOR <= 'Z')) ) 
+					for (int c2 = 0; c2 < cipherBytes.length; c2++)
 					{
-						//If a match has already been found on this byte with a different 
+						//Make sure that each of these ciphers is actually long enough
+						if ((cipherBytes[c1].length > byteNum)&&(cipherBytes[c2].length>byteNum))
+						{
+							//Figure out what this byte of the key would be if c1 is equal to plaintextChars(i)
+							keyByteCandidate = (cipherBytes[c1][byteNum] ^ plaintextChars.charAt(i)) & 0xFF;
+
+							//Decode a byte of c2 using this key
+							int decodedByte = (cipherBytes[c2][byteNum] ^ keyByteCandidate)&0xFF;
+
+							if ( plaintextChars.indexOf((char)decodedByte) >= 0) 
+							{
+								//Found a letter
+								//System.out.println("Byte " + byteNum + ": " + Integer.toHexString(keyByteCandidate) +" ^ " + Integer.toHexString(cipherBytes[c2][byteNum]) + " = " + Integer.toHexString(decodedByte) + " (" + (char)decodedByte + ")"  );
+								lettersDecoded++;
+							}
+						}
+					}
+
+					//Check to see if this is better than any of the key candidates from other bytes
+					if (lettersDecoded > mostLettersDecoded)
+					{
+						mostLettersDecoded = lettersDecoded;
+						bestKeyByte = keyByteCandidate;
 					}
 				}
 			}
+			//Okay, we've tried all of the key candidates for this byte.
+			//Keep the best one
+			//System.out.println("Decoded " + mostLettersDecoded + " on byte " + byteNum + " (" + Integer.toHexString(bestKeyByte) + ")");
+			keyBytes[byteNum] = bestKeyByte;
+
 		}
 		//Decrypt the cipherTexts using the key we've found!
+		BitBlock key = new BitBlock (keyBytes, 8);
+		System.out.println("Key: " + key.toHexString());
+		for (int i=0; i<cipherTexts.length; i++)
+		{
+			System.out.println("Decrypting CipherText #" + (i+1));
+			BitBlock cipherText = BitBlock.valueOfHexString(cipherTexts[i]);
+			System.out.println("Cipher: " + cipherText.toHexString());
+			BitBlock message = new BitBlock(cipherText);
+			message.xor(key);
+			System.out.println("Message: " + message.toHexString());
+			System.out.println("Message: " + message.toTextString(8));
+		}
 	}
 
+	public static boolean isLetter(int letter)
+	{
+		if ((letter >= 'a')&&(letter<='z'))
+		{
+			return true;
+		}
+		if ((letter >= 'A')&&(letter<='Z'))
+		{
+			return true;
+		}
+
+		return false;
+	}
 }

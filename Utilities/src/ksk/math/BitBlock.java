@@ -16,13 +16,16 @@ import java.util.Random;
  * 
  * For efficiency, this class is mutable; we don't want to construct a brand-new object everytime a bit gets twiddled
  * 
+ * Also, while a BitSet represents a single, little-endian value, a BitBlock can be thought of as a stream of bits,
+ * with Bit #0 being the first bit in the stream, and Bit #(length-1) being the last.
+ * 
  */
 
 public class BitBlock {
 	private int mLength;
 	private BitSet mBits;
 
-	//Constructor:  BitBLock
+	//Constructor:  BitBLock.  Length is in bits
 	public BitBlock(int length)
 	{
 		mBits = new BitSet();
@@ -35,7 +38,8 @@ public class BitBlock {
 		this(new long[]{val}, length);
 	}
 
-	//Constructor:  BitBlock containing all of the bits from a little-endian long array (overflow bits are ignored)
+	//Constructor:  BitBlock containing all of the bits from a long array (overflow bits are ignored)
+	//Note that bits are added to the stream in the order that they appear in the array
 	public BitBlock(long[] values, int bitsPerValue)
 	{
 		if (bitsPerValue<0)
@@ -61,14 +65,11 @@ public class BitBlock {
 			{
 				for (int bit = 0; bit<bitsPerValue; bit++)
 				{
+					//Get the value of the current bit
+					boolean bitValue = (values[arrayIndex] >> (bitsPerValue - bit - 1))%2 == 1;
+
 					//Set the current bit
-					mBits.set(mBitIndex, values[arrayIndex]%2==1);
-
-					//Shift the current value
-					values[arrayIndex] /= 2;
-
-					//Shift the mBitIndex
-					mBitIndex++;
+					mBits.set(mBitIndex++, bitValue);
 				}
 			}
 		}
@@ -422,7 +423,7 @@ public class BitBlock {
 	public String toString()
 	{
 		String result = "";
-		for (int i=mLength-1; i>=0; i--)
+		for (int i=0; i<mBits.length(); i++)
 		{
 			if (mBits.get(i))
 			{
@@ -442,7 +443,7 @@ public class BitBlock {
 	{
 		//Create a long array containing all of the characters from the String
 		long[] chars = new long[val.length()];
-		for (int i=0; i<chars.length; i++)
+		for (int i=0; i < chars.length; i++)
 		{
 			chars[i] = val.charAt(i);
 		}
@@ -501,7 +502,7 @@ public class BitBlock {
 		String result = "";
 		
 		//Loop through all of the "nibbles" in the BitBlock
-		for (int index = 0; index < mLength; index += 4)
+		for (int index = 0; index<=mLength-4; index += 4)
 		{
 			//Get the nibble
 			long nibble = toLong(index, index+4);
@@ -556,7 +557,19 @@ public class BitBlock {
 	//Note that starting index is inclusive, ending is exclusive
 	public long toLong(int from, int to)
 	{
-		long[] value = mBits.get(from,to).toLongArray();
+		//Get the relevant subrange
+		BitSet temp = new BitSet();
+		
+		//Reverse the bits
+		for (int i=from; i<to; i++)
+		{
+			if (mBits.get(i))
+			{
+				temp.set(to-1 + from - i);
+			}
+		}
+		
+		long[] value = temp.get(from,to).toLongArray();
 		
 		if ((value != null)&&(value.length>0))
 		{
