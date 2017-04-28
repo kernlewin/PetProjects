@@ -2,6 +2,12 @@ package ksk.math;
 
 import java.util.BitSet;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.Timeout;
+import static org.junit.Assert.assertEquals;
 
 /*
  * A BitBlock is like a BitSet, but with size that is fixed from the moment of construction.
@@ -590,5 +596,4 @@ public class BitBlock {
 		return mBits.toByteArray();
 	}
 	
-
 }
