@@ -49,10 +49,8 @@ public class BigNumber extends Number implements Comparable<BigNumber>
 	//Constructor:  Copy Constructor
 	public BigNumber(BigNumber src)
 	{
-		mNumerator = new BigInteger(src.mNumerator.toString());
-		mDenominator = new BigInteger(src.mDenominator.toString());
-
-		reduce();
+		mNumerator = src.mNumerator;
+		mDenominator = src.mDenominator;
 	}
 
 	//Constructor:  From String	
@@ -83,10 +81,9 @@ public class BigNumber extends Number implements Comparable<BigNumber>
 	//Constructor from numerator and denominator
 	public BigNumber(Number num, Number denom)
 	{
-		mNumerator = new BigInteger(num.toString());
-		mDenominator = new BigInteger(denom.toString());
-		
-		reduce();
+		BigNumber temp = new BigNumber(num).divide(new BigNumber(denom));
+		mNumerator = temp.mNumerator;
+		mDenominator = temp.mDenominator;
 	}
 
 	//Arithmetic operations
@@ -229,7 +226,7 @@ public class BigNumber extends Number implements Comparable<BigNumber>
 	}
 
 	//Convert to BigDecimal (USUALLY exact, but not for infinitely repeating decimals)
-	public BigDecimal getValue()
+	public BigDecimal toBigDecimal()
 	{
 		//Create decimal versions of numerator and denominator
 		BigDecimal numerator = new BigDecimal(mNumerator);
@@ -249,14 +246,14 @@ public class BigNumber extends Number implements Comparable<BigNumber>
 
 	//Get improper fraction
 	//Returns an array containing numerator, denominator
-	public BigInteger[] getFraction()
+	public BigInteger[] toFraction()
 	{
 		return new BigInteger[]{mNumerator, mDenominator};
 	}
 
 	//Get mixed number
 	//Returns an array containing whole part, numerator denominator
-	public BigInteger[] getMixedNumber()
+	public BigInteger[] toMixedNumber()
 	{
 		BigInteger[] result = new BigInteger[3];
 
@@ -278,13 +275,13 @@ public class BigNumber extends Number implements Comparable<BigNumber>
 	//Convert to String (exact if possible)
 	public String toString()
 	{
-		return getValue().toString();
+		return toBigDecimal().toString();
 	}
 
 	//Get a String with decimal places specified
 	public String toRoundedString(int n)
 	{
-		return getValue().round(new MathContext(n, RoundingMode.HALF_EVEN)).toString();
+		return toBigDecimal().round(new MathContext(n, RoundingMode.HALF_EVEN)).toString();
 	}
 
 	//Get a possibly improper fraction String
@@ -305,7 +302,7 @@ public class BigNumber extends Number implements Comparable<BigNumber>
 	{
 		String result = "";
 
-		BigInteger[] mixed = getMixedNumber();
+		BigInteger[] mixed = toMixedNumber();
 
 		////Include integer part only if it's non-zero
 		if (mixed[0].compareTo(BigInteger.ZERO) != 0)
@@ -363,32 +360,33 @@ public class BigNumber extends Number implements Comparable<BigNumber>
 		}
 	}
 
-	//Override method inherited from Comparable
 	@Override
-	public int compareTo(BigNumber arg) {
-		//Subtract and return the sign
-		return this.subtract(arg).signum();
+	public int compareTo(BigNumber num) {
+		// TODO Auto-generated method stub
+		return subtract(num).signum();
 	}
 
-
-	//Override methods inherited from Number	
 	@Override
 	public double doubleValue() {
-		return Double.valueOf(toString());
+		// TODO Auto-generated method stub
+		return toBigDecimal().doubleValue();
 	}
 
 	@Override
 	public float floatValue() {
-		return Float.valueOf(toString());
+		// TODO Auto-generated method stub
+		return toBigDecimal().floatValue();
 	}
 
 	@Override
 	public int intValue() {
-		return Integer.valueOf(toString());
+		// TODO Auto-generated method stub
+		return toBigDecimal().intValue();
 	}
 
 	@Override
 	public long longValue() {
-		return Long.valueOf(toString());
+		// TODO Auto-generated method stub
+		return toBigDecimal().longValue();
 	}
 }

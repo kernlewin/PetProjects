@@ -11,7 +11,7 @@ package ksk.math;
  * dependent value, though these can be repeated.
  */
 
-public abstract class Function<N extends Number> {
+public abstract class Function<N implements Comparable> {
 
 	//Get the value of the function
 	public abstract N getValue(N x);

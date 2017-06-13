@@ -1,0 +1,93 @@
+ChessEngine
+-----------
+Core component that controls the interaction between the ChessPlayers, ChessBoard, ChessJudge, and the ChessGUI
+It polls players for moves, uses the judge to validate them, applies them, and checks for end of game conditions
+
+Interface:
+- enum ChessStatus - List of enum types for the different ways a game can end
+- ChessEngine() - Create default Chess game
+- ChessEngine(ChessPlayer[]) - Specify player list
+- ChessEngine(ChessBoard) - Allow a custom board
+- ChessEngine(ChessJudge) - Allow custom rules
+- ChessEngine(ChessBoard, ChessPlayer[])
+- ChessEngine(ChessBoard, ChessPlayer[], ChessJudge) 
+
+- void reset() - Return to starting configuration
+- void pauseGame() - Temporarily stop the game (disallow any moves)
+- void startGame() - Continue allowing players to make moves in the game
+- ChessStatus getGameStatus() - Return a value indicating if the game is running, or has ended, and if so, why
+- boolean isDrawOffered() - Check if a player is offering a draw; no moves can be made until the draw has been accepted or declined
+- ChessBoard getBoard() - Return a copy of the game board
+
+- void move(int, int) - Used by player threads to make a move.  Returns true if the move was accepted.  It is expected that 
+   the player thread will end quickly after making a move.  If a Player attempts mutliple moves, the ChessEngine will typically
+   only process the first one, valid or not
+- void resign() - Called when player accepts defeat
+- boolean offerDraw() - Called when a player wants to offer a draw.  Returns true if all players accept
+ 
+
+
+ChessJudge
+----------
+Check validity of moves
+Check for conditions such as check, mate, stalemate
+Changing the judge changes the rules of play
+En Passant and Castling are controlled entirely by this class.  For standard moves, the ChessJudge uses the ChessPiece class to help
+    it figure out what's legal
+
+Interface:
+
+- ChessJudge()
+
+- boolean isValidMove(ChessBoard, ChessMove) - Check legality of a move
+- ChessBoard applyMove (ChessBoard, ChessMove) - Return a new Board, after making specified move.  null if move is invalid
+- boolean isCheck(ChessPlayer) - Return true if the specified player is in check
+- boolean isMate(ChessPlayer)
+- boolean canCastle(ChessPlayer) - true if castling is still an option.  Does not imply that the player can castle right now
+
+ChessPiece
+----------
+Represents a particular type of chess piece
+Each piece knows its own movement and capture patterns
+Note that in standard chess, only the pawn actually needs to know which side of the board it's on
+
+Interface:
+- enum ChessPieceType - Lists the different types of pieces available
+- ChessPiece(ChessPieceType)
+- ChessPiece(ChessPieceType, ChessPlayer) - Specify owner.  For most pieces this doesn't matter, and can be null
+
+- ChessPieceType getType()
+- int[] getMoveOffsets() - Return a list of offsets that represent valid moves for this piece.  These are returned
+                           in an array of even length [rankOffset, fileOffset...]
+- int[] getCaptureOffset() - Required for pieces that capture and move differently
+- boolean canJump() - Indicates whether or not this piece can move if there are pieces between its starting and ending point
+
+ChessPlayer
+-----------
+Represents a source of Chess moves
+Subclasses support human or algorithmic play
+Each ChessPlayer runs in a separate thread
+The ChessEngine may enforce a timeout on moves
+
+Interface:
+
+- ChessPlayer(ChessEngine, int) - Create a numbered player (in a standard game, white will be player 0)
+
+- run() - Make a single move on the ChessBoard (received from the ChessEngine saved at construction time) or respond to a draw offer
+
+
+ChessMove
+---------
+Represents a single move, including castling
+Move includes a start and end location, and a reference to the ChessPlayer making the move.  Note that each ChessPlayer
+reference is only ever revealed to the ChessEngine, and the ChessPlayer itself, so this is a way to prevent spoofing
+moves (shouldn't be possible anyway; player threads run one at a time, and only on their own turn.  All publicly exposed
+player info uses the player's NUMBER not a reference to the object
+
+Interface:
+- ChessMove(ChessPlayer, int, int ,int ,int) - Create a move (immutable) for a specific player, given start and end rank and file
+                                               Castling moves will contain info on the King's move.  The ChessJudge should detect if
+                                               the move represents the King's portion of a legal castling move
+                                               
+- int[] getStart()
+- int[] getEnd()
