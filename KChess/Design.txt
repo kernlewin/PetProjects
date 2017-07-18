@@ -53,14 +53,15 @@ Note that in standard chess, only the pawn actually needs to know which side of 
 
 Interface:
 - enum ChessPieceType - Lists the different types of pieces available
-- ChessPiece(ChessPieceType)
-- ChessPiece(ChessPieceType, ChessPlayer) - Specify owner.  For most pieces this doesn't matter, and can be null
+- ChessPiece(ChessPieceType, int) - type of piece, and player number of the owner
 
 - ChessPieceType getType()
 - int[] getMoveOffsets() - Return a list of offsets that represent valid moves for this piece.  These are returned
                            in an array of even length [rankOffset, fileOffset...]
 - int[] getCaptureOffset() - Required for pieces that capture and move differently
 - boolean canJump() - Indicates whether or not this piece can move if there are pieces between its starting and ending point
+- int getValue() - Standard chess valuation of this piece e.g. Pawn = 1, Bishop = 3, etc.
+- int getOwner() - Return the player number of the owner of this piece
 
 ChessPlayer
 -----------
@@ -91,3 +92,21 @@ Interface:
                                                
 - int[] getStart()
 - int[] getEnd()
+
+ChessBoard
+----------
+Tracks the location of all pieces on the board
+Nobody should ever get a reference to this object except the ChessEngine
+
+Interface:
+- ChessBoard() - Create an empty board
+- ChessBoard(ChessBoard) - Copy an existing board
+- ChessBoard(Chessboard, int) - Copy an existing board, but including only pieces belonging to one player
+
+- ChessPiece getPiece(int, int)
+- boolean addPiece(ChessPiece, int, int)
+- ChessPiece removePiece(int, int)
+- ChessPiece[] getPieces() - List of all of the pieces on the board
+- ChessPiece[] getPieces(int) - List of all of the pieces belonging to a particular player
+- int getValue() - Calculate the heuristic value of all of the pieces on the board
+- int getValue(int) - Calculate the heuristic value of all of the pieces on the board belonging to a particular player
