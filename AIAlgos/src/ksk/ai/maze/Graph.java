@@ -39,7 +39,7 @@ public class Graph {
 		//Not all Nodes need Edges, but all Edges need Nodes
 		if (edges != null)
 		{
-			mEdgeSet.add(edges);
+			mEdgeSet.addAll(edges);
 			prune();
 		}
 
@@ -149,8 +149,34 @@ public class Graph {
 	}
 
 	/**
-	 * getWeight
+	 * Get the Edge (if any) connecting the two specified Nodes
 	 */
+	public Edge getEdge(Node n1, Node n2)
+	{
+		if ((n1==null)||(n2==null))
+		{
+			return null;
+		}
+		
+		for (Edge e: mEdgeSet)
+		{
+			Node[] nodes = e.getNodes();
+			if (((n1==nodes[0])&&(n2==nodes[1]))||((n2==nodes[0])&&(n1==nodes[1])))
+			{
+				return e;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Check if two Nodes are connected
+	 */
+	public boolean isConnected(Node n1, Node n2)
+	{
+		return (getEdge(n1,n2)!=null);
+	}
 
 	/**
 	 * contains
