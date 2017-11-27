@@ -63,4 +63,38 @@ public class Edge {
 	{
 		return new Node[]{mNode1, mNode2};
 	}
+	
+	public String toString()
+	{
+		return mNode1.toString() + "<->" + mNode2.toString();
+	}
+	
+	public int hashCode()
+	{
+		//Combine the Node hashCodes
+		return (mNode1.hashCode()+mNode2.hashCode())%Integer.MAX_VALUE;
+	}
+	
+	public boolean equals(Object o)
+	{
+		if (!(o instanceof Edge))
+		{
+			return false;
+		}
+		
+		Node[] nodes = ((Edge)o).getNodes();
+		
+		if ((mNode1.equals(nodes[0]))&&(mNode2.equals(nodes[1])))
+		{
+			return true;
+		}
+		
+		//Reversed edge
+		if ((mNode1.equals(nodes[1]))&&(mNode2.equals(nodes[0])))
+		{
+			return true;
+		}
+		
+		return false;
+	}
 }

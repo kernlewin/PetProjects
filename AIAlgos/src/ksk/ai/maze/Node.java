@@ -9,8 +9,8 @@ package ksk.ai.maze;
  * Represents a node in a graph.
  * 
  * Considered having nodes contain objects, either as members, or as a parameterized type,
- * or a subtype, but for now, I think we'll just use an ID number.  this can have information encoded in it by
- * subclasses, or, for more complex nodes, each node could be associated to an object using a map
+ * or a subtype, but for now, I think we'll just use an ID number.  Different types of Graphs
+ * can use subclasses of Node if they need to store more information.
  */
 public class Node {
 
@@ -33,8 +33,33 @@ public class Node {
 	/**
 	 * Get the ID number for this node
 	 */
-	public long getID()
+	public final long getID()
 	{
 		return mID;
+	}
+	
+	public String toString()
+	{
+		return String.valueOf(getID());
+	}
+	
+	public boolean equals (Object o)
+	{
+		if (!(o instanceof Node))
+		{
+			return false;
+		}
+		
+		if (((Node)o).getID()!= getID())
+		{
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public int hashCode()
+	{
+		return (int)(getID()%Integer.MAX_VALUE);
 	}
 }

@@ -15,18 +15,18 @@ import java.util.Set;
  * A graph consists of a set of Nodes, each of which may or may not be connected to other Nodes by Edges.
  * Basic Edges may have a weight associated with them, but no direction.
  */
-public class Graph {
+public class Graph<N extends Node> {
 
 	//Set of Nodes and Edges
-	Set<Node> mNodeSet;
+	Set<N> mNodeSet;
 	Set<Edge> mEdgeSet;
 
 	/**
 	 * Constructor:  Create a graph with Nodes and Edges
 	 */
-	public Graph(Collection<Node> nodes, Collection<Edge> edges)
+	public Graph(Collection<N> nodes, Collection<Edge> edges)
 	{
-		mNodeSet = new HashSet<Node>();
+		mNodeSet = new HashSet<N>();
 		mEdgeSet = new HashSet<Edge>();
 
 		//Add all nodes to the graph
@@ -60,8 +60,9 @@ public class Graph {
 	 * 
 	 * @return true if the Node was added to the Graph, false for duplicate or null Nodes
 	 */
-	public boolean addNode(Node n)
+	public boolean addNode(N n)
 	{
+		//No Null Nodes
 		if (n != null)
 		{
 			return mNodeSet.add(n);
@@ -77,7 +78,7 @@ public class Graph {
 	 * 
 	 * @return true if the Node was removed, false if the Node was null, or not in the Graph
 	 */
-	public boolean removeNode(Node n)
+	public boolean removeNode(N n)
 	{
 		if (n != null)
 		{
@@ -97,11 +98,18 @@ public class Graph {
 	 * @param n2 Second Node to connect
 	 * @param w Connection weight 
 	 */
-	public void connect(Node n1, Node n2, double weight)
+	public boolean connect(N n1, N n2, double weight)
 	{
-		mNodeSet.add(n1);
-		mNodeSet.add(n2);
-		mEdgeSet.add(new Edge(n1, n2, weight));
+		//No Edges to Null Nodes (shouldn't be any Null Nodes, but if I add this Edge I'll have
+		//to prune it right away)
+		if ((n1!=null)&&(n2 != null))
+		{
+			mNodeSet.add(n1);
+			mNodeSet.add(n2);
+			return mEdgeSet.add(new Edge(n1, n2, weight));
+		}
+
+		return false;
 	}
 
 	/**
@@ -111,41 +119,28 @@ public class Graph {
 	 * @param n2 Second Node to connect
 	 * @param w Connection weight 
 	 */
-	public void connect(Node n1, Node n2)
+	public boolean connect(N n1, N n2)
 	{
-		mNodeSet.add(n1);
-		mNodeSet.add(n2);
-		mEdgeSet.add(new Edge(n1, n2));
+		//No Edges to Null Nodes (shouldn't be any Null Nodes, but if I add this Edge I'll have
+		//to prune it right away)
+		if ((n1!=null)&&(n2 != null))
+		{
+			mNodeSet.add(n1);
+			mNodeSet.add(n2);
+			return mEdgeSet.add(new Edge(n1, n2));
+		}
+
+		return false;
 	}
 
-	
+
 	/**
 	 * Attempt to disconnect (remove the Edge between) two Nodes.  Return true if an Edge was removed,
 	 * False if the Edge isn't in the Graph
 	 */
 	public boolean disconnect(Node n1, Node n2)
 	{
-		if ((n1 == null)||(n2==null))
-		{
-			return false;
-		}
-		
-		//Search for any matching Edges
-		boolean removed = false;
-		for (Edge e : mEdgeSet)
-		{
-			Node[] nodes = e.getNodes();
-			if ((n1==nodes[0])||(n1==nodes[1])||(n2==nodes[0])||(n2==nodes[1]))
-			{
-				mEdgeSet.remove(e);
-				removed = true;
-			}
-		}
-		
-		//Clean up the Node list
-		prune();
-		
-		return removed;
+		return mEdgeSet.remove(new Edge(n1, n2));
 	}
 
 	/**
@@ -153,23 +148,19 @@ public class Graph {
 	 */
 	public Edge getEdge(Node n1, Node n2)
 	{
-		if ((n1==null)||(n2==null))
-		{
-			return null;
-		}
-		
+		Edge tempEdge = new Edge(n1, n2);
+
 		for (Edge e: mEdgeSet)
 		{
-			Node[] nodes = e.getNodes();
-			if (((n1==nodes[0])&&(n2==nodes[1]))||((n2==nodes[0])&&(n1==nodes[1])))
+			if (e.equals(tempEdge))
 			{
 				return e;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Check if two Nodes are connected
 	 */
@@ -179,13 +170,21 @@ public class Graph {
 	}
 
 	/**
-	 * contains
+	 * Check whether or not a given node is in the Graph
+	 * 
+	 * @param n Node to search for
+	 * 
+	 * @returns true if the Node is in the Graph, otherwise false
 	 */
+	public boolean contains(Node n)
+	{
+		return mNodeSet.contains(n);
+	}
 
 
 	//Prune away useless Edges.  This method removes any Edges that connect to non-existent Nodes,
 	//as well as Edges with a weight of zero.
-	private void prune()
+	protected void prune()
 	{
 		for (Edge e : mEdgeSet)
 		{
