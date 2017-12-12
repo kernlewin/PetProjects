@@ -9,6 +9,8 @@ package ksk.ai.maze;
  * A GridNode is a special type of Node that uses a row and column as its unique identifiers.
  * Two GridNodes cannot share the same coordinates, and they cannot be connected unless they are adjacent to
  * each other
+ * 
+ * GridNodes are IMMUTABLE.
  */
 public class GridNode extends Node {
 

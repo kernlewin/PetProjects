@@ -162,6 +162,53 @@ public class Graph<N extends Node> {
 	}
 
 	/**
+	 * Get all Edges (if any) connected to a particular Node
+	 * 
+	 * @param n This is the Node whose Edges we are to search for
+	 * @return A Set of Edges.  This Set may be empty (if the Node is not connected, or doesn't exist) but will not be null
+	 */
+	public Set<Edge> getEdges(N n)
+	{
+		Set<Edge> result = new HashSet<Edge>();
+
+		//Loop through all edges
+		for (Edge e: mEdgeSet)
+		{
+			Node[] nodes = e.getNodes();
+
+			//Check if n is one of the Nodes connected to this Edge
+			if ((nodes[0].equals(n))||(nodes[1].equals(n)))
+			{
+				result.add(e);
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Get all of the Nodes connected to a particular Node
+	 * @param n The Node whose neighbours we are to look for
+	 * @return A Set containing all the Nodes that share an Edge with Node n.  This Set may be empty, but will not be null.  Note that n will be considered its own neighbour if it is connected to itself.
+	 */
+	public Set<N> getNeighbours(N n)
+	{
+		Set<N> result = new HashSet<N>();
+
+		//Loop through all Nodes
+		for (N x: mNodeSet)
+		{
+			//Check if an Edge exists between this Node and n
+			if (getEdge(n, x) != null)
+			{
+				result.add(x);
+			}
+		}
+
+		return result;
+	}
+
+	/**
 	 * Check if two Nodes are connected
 	 */
 	public boolean isConnected(Node n1, Node n2)
@@ -181,7 +228,28 @@ public class Graph<N extends Node> {
 		return mNodeSet.contains(n);
 	}
 
-
+	/**
+	 * Get all of the Nodes in the graph. This will be a shallow copy of the internal set of Nodes
+	 * (Nodes are immutable, Sets are not)
+	 * 
+	 * @return  A Set of all of the Nodes in the Graph
+	 */
+	public Set<N> getNodes()
+	{
+		return new HashSet<N>(mNodeSet);
+	}
+	
+	/**
+	 * Get all of the Edges in the graph. This will be a shallow copy of the internal set of Edges
+	 * (Edges are immutable, Sets are not)
+	 * 
+	 * @return  A Set of all of the Edges in the Graph
+	 */
+	public Set<Edge> getEdges()
+	{
+		return new HashSet<Edge>(mEdgeSet);
+	}
+	
 	//Prune away useless Edges.  This method removes any Edges that connect to non-existent Nodes,
 	//as well as Edges with a weight of zero.
 	protected void prune()
