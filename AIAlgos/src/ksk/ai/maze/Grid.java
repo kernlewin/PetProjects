@@ -1,6 +1,7 @@
 package ksk.ai.maze;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -27,11 +28,11 @@ public class Grid extends Graph<GridNode>{
 		this(g.getRows(), g.getColumns());		
 		
 		//Copy all of the connections from the source Grid
-		for (Edge e: g.mEdgeSet)
+		for (Edge<GridNode> e: g.mEdgeSet)
 		{
-			Node[] nodes = e.getNodes();
-			GridNode node1 = (GridNode)nodes[0];
-			GridNode node2 = (GridNode)nodes[1];
+			List<GridNode> nodes = e.getNodes();
+			GridNode node1 = (GridNode)nodes.get(0);
+			GridNode node2 = (GridNode)nodes.get(1);
 			
 			connect(node1.getRow(), node1.getColumn(), node2.getRow(), node2.getColumn());
 		}
@@ -288,11 +289,14 @@ public class Grid extends Graph<GridNode>{
 	
 	/**
 	 * Get a list of walls.  Walls are special edges that represented nodes that are NOT connected to each other.
-	 * but ARE beside each other
+	 * but ARE beside each other.
+	 * 
+	 * @return A Set of Edge objects representing all non-connected adjacent Nodes.
+	 * 
 	 */
-	public Set<Edge> getWalls()
+	public Set<Edge<GridNode>> getWalls()
 	{
-		Set<Edge> result = new HashSet<Edge>();
+		Set<Edge<GridNode>> result = new HashSet<Edge<GridNode>>();
 		
 		for (GridNode n1 : mNodeSet)
 		{
@@ -300,7 +304,7 @@ public class Grid extends Graph<GridNode>{
 			{
 				if ((isAdjacent(n1,n2))&&(!isConnected(n1,n2)))
 				{
-					result.add(new Edge(n1,n2));
+					result.add(new Edge<GridNode>(n1,n2));
 				}
 			}
 		}
@@ -308,6 +312,28 @@ public class Grid extends Graph<GridNode>{
 		return result;
 	}
 
+
+	/**
+	 * Get all of the walls around a specific Node.
+	 * @param n The Node whose walls we are to look for
+	 * @return A Set containing Edge objects that represent non-connections to adjacent Nodes.
+	 */
+	public Set<Edge<GridNode>> getWalls(GridNode n)
+	{
+		Set<Edge<GridNode>> result = new HashSet<Edge<GridNode>>();
+
+		//Loop through all Nodes
+		for (GridNode x: mNodeSet)
+		{
+			//Check if a wall exists between this Node and n
+			if ((isAdjacent(n,x))&&(getEdge(n, x) == null))
+			{
+				result.add(new Edge<GridNode>(n,x));
+			}
+		}
+
+		return result;
+	}
 	/**
 	 * Clear any Nodes, that are outside of the Grid area, as well as any Edges for
 	 * non-existent Nodes

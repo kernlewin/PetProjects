@@ -1,5 +1,8 @@
 package ksk.ai.maze;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * 
@@ -12,7 +15,7 @@ package ksk.ai.maze;
  * An Edge connects two Nodes together with some associated domain-specific weighting factor.
  * Default weight is 1.0 
  */
-public class Edge {
+public class Edge<N extends Node> {
 
 	//Class default weight
 	private static double DEFAULT_WEIGHT = 1.0;
@@ -21,11 +24,11 @@ public class Edge {
 	private double mWeight;
 	
 	//Edge Nodes
-	private Node mNode1, mNode2;
+	private N mNode1, mNode2;
 	/**
 	 * Constructor: Create a new Edge with specified weight
 	 */
-	public Edge(Node n1, Node n2, double weight)
+	public Edge(N n1, N n2, double weight)
 	{
 		mNode1 = n1;
 		mNode2 = n2;
@@ -35,7 +38,7 @@ public class Edge {
 	/**
 	 * Constructor:  Create a new Edge with default weight
 	 */
-	public Edge(Node n1, Node n2)
+	public Edge(N n1, N n2)
 	{
 		this(n1, n2, DEFAULT_WEIGHT);
 	}
@@ -59,9 +62,13 @@ public class Edge {
 	/**
 	 * Get the two Nodes connected by this edge.  
 	 */
-	public Node[] getNodes()
+	public List<N> getNodes()
 	{
-		return new Node[]{mNode1, mNode2};
+		List<N> result =  new ArrayList<N>();
+		result.add(mNode1);
+		result.add(mNode2);
+		
+		return result;
 	}
 	
 	public String toString()
@@ -82,15 +89,9 @@ public class Edge {
 			return false;
 		}
 		
-		Node[] nodes = ((Edge)o).getNodes();
+		List<N> nodes = ((Edge<N>)o).getNodes();
 		
-		if ((mNode1.equals(nodes[0]))&&(mNode2.equals(nodes[1])))
-		{
-			return true;
-		}
-		
-		//Reversed edge
-		if ((mNode1.equals(nodes[1]))&&(mNode2.equals(nodes[0])))
+		if ( nodes.contains(mNode1) && nodes.contains(mNode2))
 		{
 			return true;
 		}

@@ -3,6 +3,8 @@ package ksk.ai.gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.util.HashMap;
+import java.util.Map;
 
 import ksk.ai.maze.Grid;
 import ksk.ai.maze.GridNode;
@@ -16,17 +18,26 @@ import ksk.ai.maze.Maze;
  *
  */
 
-public class MazeGUI extends GridGUI {
-	
+public class MazeGUI extends GridGUI implements MazeListener {
+
+	//The maze that we are representing
 	Maze mMaze;
+
+	//Colors to represent key cells in the maze
+	private static final Color START_COLOR = Color.green;
+	private static final Color GOAL_COLOR = Color.red;
+	private static final Color CLOSED_COLOR = Color.black;
+	private static final Color VISITED_COLOR = Color.yellow;
 
 	public MazeGUI(Maze m)
 	{
 		super(m.getGrid());
 
 		mMaze = m;
+		mMaze.addMazeListener(this);
 	}
 
+	@Override
 	public void paint(Graphics g)
 	{
 		//Get the grid geometry for the maze
@@ -47,23 +58,30 @@ public class MazeGUI extends GridGUI {
 			{
 				GridNode current = new GridNode(r,c);
 
-				//Colour start node in green
+				//Color start node in green
 				if (mMaze.getStart().equals(current))
 				{
-					g.setColor(Color.green);
+					g.setColor(START_COLOR);
 					g.fillRect((c-1)*width, (r-1)*height, width, height);
 				}
-				//Colour goal node in red
+				//Color goal node in red
 				else if (mMaze.getGoal().equals(current))
 				{
-					g.setColor(Color.red);
+					g.setColor(GOAL_COLOR);
 					g.fillRect((c-1)*width, (r-1)*height, width, height);
 				}
-				//Colour disconnected node in black
-				/*else if (grid.getNeighbours(current).isEmpty())
+				//Color visited nodes
+				else if (mMaze.getVisit(current) != null)
 				{
+					g.setColor(VISITED_COLOR);
+					g.fillRect((c-1)*width, (r-1)*height, width, height);					
+				}
+								//Color disconnected node in black
+				else if (grid.getNeighbours(current).isEmpty())
+				{
+					g.setColor(CLOSED_COLOR);
 					g.fillRect((c-1)*width, (r-1)*height, width, height);
-				}*/
+				}
 
 				g.setColor(Color.black);
 			}
@@ -71,5 +89,11 @@ public class MazeGUI extends GridGUI {
 
 		//Call the superclass to draw any walls
 		super.paint(g);
+	}
+
+	@Override
+	public void onMazeEvent(MazeEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -1,5 +1,7 @@
 package ksk.ai.maze;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -16,11 +18,15 @@ import java.util.Random;
  */
 
 public class Maze {
-	
+
 	//The grid that represents all of the nodes and connections of the maze
 	protected Grid mGrid;
-	GridNode mStart, mGoal;
-	
+	protected GridNode mStart, mGoal;
+
+	//Maintain a map of visited nodes to numbers (could be used if multiple objects are traversing
+	//to remember last visitor, or to count steps, etc)
+	protected Map<GridNode, Integer> mVisits;
+
 	/**
 	 * Contructor:  Create a maze of the given dimensions.
 	 * 
@@ -31,7 +37,7 @@ public class Maze {
 	{
 		this (rows, columns, null);
 	}
-	
+
 	/**
 	 * Constructor:  Create a maze of the given dimensions, using a specific maze-generation
 	 * algorithm
@@ -43,17 +49,20 @@ public class Maze {
 	{
 		//Create grid
 		mGrid = new Grid(rows, columns);
-		
+
+		//Initially no visitors
+		mVisits = new HashMap<GridNode, Integer>();
+
 		//Choose start and goal locations
 		Random r = new Random();
 		int startRow = r.nextInt(rows)+1;
 		int startColumn = r.nextInt(columns)+1;
 		int goalRow = r.nextInt(rows)+1;
 		int goalColumn = r.nextInt(columns)+1;
-		
+
 		mStart = new GridNode(startRow, startColumn);
 		mGoal = new GridNode(goalRow, goalColumn);
-		
+
 		//Generate the maze, with (at least) a path from start to goal
 		if (gen != null)
 		{
@@ -65,7 +74,7 @@ public class Maze {
 			mGrid.connectAll();
 		}
 	}
-	
+
 	/**
 	 * Get the Start location for this maze
 	 * 
@@ -75,7 +84,7 @@ public class Maze {
 	{
 		return mStart;
 	}
-	
+
 	/**
 	 * Get the Goal location for this maze
 	 * 
@@ -85,7 +94,7 @@ public class Maze {
 	{
 		return mGoal;
 	}
-	
+
 	/**
 	 * Get a copy of the entire Grid for this maze.  Note that we must NOT expose the actual
 	 * Grid, or anybody can arbitrarily modify the structure of the maze
@@ -96,6 +105,47 @@ public class Maze {
 	{
 		return new Grid(mGrid);
 	}
-	
-	
+
+	/**
+	 * Mark a given node as having been visited
+	 * 
+	 * @param n  The visited node
+	 * @param visitor A number representing the visitor (Or step number, etc.)
+	 */
+	public void visit(GridNode n, Integer visitor)
+	{
+		if (visitor==null)
+		{
+			mVisits.remove(n);
+		}
+		else
+		{
+			mVisits.put(n,visitor);
+		}
+	}
+
+	/** Mark a node as unvisited
+	 * 
+	 * @param n The node to be marked.
+	 */
+	public void unVisit(GridNode n)
+	{
+		visit(n, null);
+	}
+
+	/**
+	 * Get information on the visited status of this node.
+	 * 
+	 * @param n  The node to check.
+	 * @return  The visited status.  This may be the ID of the last visitor, a step number, etc., depending on the application.
+	 */
+	public Integer getVisit(GridNode n)
+	{
+		if (!mVisits.containsKey(n))
+		{
+			return null;
+		}
+
+		return mVisits.get(n);
+	}
 }

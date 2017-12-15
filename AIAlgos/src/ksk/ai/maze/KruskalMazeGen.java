@@ -1,5 +1,15 @@
 package ksk.ai.maze;
 
+/**
+ * Generates a maze using the Krukal algorithm:
+ * 
+ * - Create a collection of Sets of grid locations.  Initially, each location in the maze is
+ *   in a separate set
+ * - Choose a wall at random
+ * - If the wall connects locations in separate sets, connect these two locations, and unite
+ *   their sets
+ * - Repeat until there are no more walls to consider / all cells are in one set
+ */
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +28,7 @@ public class KruskalMazeGen implements MazeGenerator {
 		g.disconnectAll();
 
 		//Get a list of walls
-		List<Edge> walls = new ArrayList<Edge>(g.getWalls());
-
-		System.out.println(walls.size());
+		List<Edge<GridNode>> walls = new ArrayList<Edge<GridNode>>(g.getWalls());
 		
 		//Map each node to its own "set" number.  There is a path between cells iff
 		//they have the same value in this map
@@ -32,26 +40,37 @@ public class KruskalMazeGen implements MazeGenerator {
 			sets.put(n, index++);
 		}
 		
-		//While there is more than one set...
+		//While there are walls left to consider...
 		Random r = new Random();
 		while (!walls.isEmpty())
 		{
 			//Choose a wall at random
 			index = r.nextInt( walls.size() );
-			Edge wall = walls.get(index);
+			Edge<GridNode> wall = walls.get(index);
 
 			//Remove the wall from the list
 			walls.remove(index);
 
 			//If the cells on either side of this wall are in different sets, connect them and
 			//join their sets together
-			Node[] nodes = wall.getNodes();
-			GridNode node1 = (GridNode)nodes[0];
-			GridNode node2 = (GridNode)nodes[1];
+			List<GridNode> nodes = wall.getNodes();
+			GridNode node1 = (GridNode)nodes.get(0);
+			GridNode node2 = (GridNode)nodes.get(1);
+			int set1 = sets.get(node1);
+			int set2 = sets.get(node2);
 			
-			if (g.isAdjacent(node1,node2)&&(sets.get(node1) != sets.get(node2)))
+			if (g.isAdjacent(node1,node2)&&(set1 != set2))
 			{
-				sets.put(node2, sets.get(node1));
+				//Add all of the nodes in the second set to the first set
+				Set<Map.Entry<GridNode, Integer>> mapEntries = sets.entrySet();
+				for (Map.Entry<GridNode, Integer> e : mapEntries)
+				{
+					if (e.getValue()==set2)
+					{
+						e.setValue(set1);
+					}
+				}
+				
 				g.connect(node1, node2);
 			}
 

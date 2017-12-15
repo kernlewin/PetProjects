@@ -2,6 +2,7 @@ package ksk.ai.maze;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,15 +20,15 @@ public class Graph<N extends Node> {
 
 	//Set of Nodes and Edges
 	Set<N> mNodeSet;
-	Set<Edge> mEdgeSet;
+	Set<Edge<N>> mEdgeSet;
 
 	/**
 	 * Constructor:  Create a graph with Nodes and Edges
 	 */
-	public Graph(Collection<N> nodes, Collection<Edge> edges)
+	public Graph(Collection<N> nodes, Collection<Edge<N>> edges)
 	{
 		mNodeSet = new HashSet<N>();
-		mEdgeSet = new HashSet<Edge>();
+		mEdgeSet = new HashSet<Edge<N>>();
 
 		//Add all nodes to the graph
 		if (nodes != null)
@@ -106,7 +107,7 @@ public class Graph<N extends Node> {
 		{
 			mNodeSet.add(n1);
 			mNodeSet.add(n2);
-			return mEdgeSet.add(new Edge(n1, n2, weight));
+			return mEdgeSet.add(new Edge<N>(n1, n2, weight));
 		}
 
 		return false;
@@ -127,7 +128,7 @@ public class Graph<N extends Node> {
 		{
 			mNodeSet.add(n1);
 			mNodeSet.add(n2);
-			return mEdgeSet.add(new Edge(n1, n2));
+			return mEdgeSet.add(new Edge<N>(n1, n2));
 		}
 
 		return false;
@@ -138,19 +139,19 @@ public class Graph<N extends Node> {
 	 * Attempt to disconnect (remove the Edge between) two Nodes.  Return true if an Edge was removed,
 	 * False if the Edge isn't in the Graph
 	 */
-	public boolean disconnect(Node n1, Node n2)
+	public boolean disconnect(N n1, N n2)
 	{
-		return mEdgeSet.remove(new Edge(n1, n2));
+		return mEdgeSet.remove(new Edge<N>(n1, n2));
 	}
 
 	/**
 	 * Get the Edge (if any) connecting the two specified Nodes
 	 */
-	public Edge getEdge(Node n1, Node n2)
+	public Edge<N> getEdge(N n1, N n2)
 	{
-		Edge tempEdge = new Edge(n1, n2);
+		Edge<N> tempEdge = new Edge<N>(n1, n2);
 
-		for (Edge e: mEdgeSet)
+		for (Edge<N> e: mEdgeSet)
 		{
 			if (e.equals(tempEdge))
 			{
@@ -167,17 +168,17 @@ public class Graph<N extends Node> {
 	 * @param n This is the Node whose Edges we are to search for
 	 * @return A Set of Edges.  This Set may be empty (if the Node is not connected, or doesn't exist) but will not be null
 	 */
-	public Set<Edge> getEdges(N n)
+	public Set<Edge<N>> getEdges(N n)
 	{
-		Set<Edge> result = new HashSet<Edge>();
+		Set<Edge<N>> result = new HashSet<Edge<N>>();
 
 		//Loop through all edges
-		for (Edge e: mEdgeSet)
+		for (Edge<N> e: mEdgeSet)
 		{
-			Node[] nodes = e.getNodes();
+			List<N> nodes = e.getNodes();
 
 			//Check if n is one of the Nodes connected to this Edge
-			if ((nodes[0].equals(n))||(nodes[1].equals(n)))
+			if (nodes.contains(n))
 			{
 				result.add(e);
 			}
@@ -196,12 +197,17 @@ public class Graph<N extends Node> {
 		Set<N> result = new HashSet<N>();
 
 		//Loop through all Nodes
-		for (N x: mNodeSet)
+		for (Edge<N> e: mEdgeSet)
 		{
-			//Check if an Edge exists between this Node and n
-			if (getEdge(n, x) != null)
+			//Get the nodes on this edge
+			List<N> nodes = e.getNodes();
+			
+			//If one of the nodes is n, add the other to the neighbour list
+			int index = nodes.indexOf(n);
+			if (index >= 0)
 			{
-				result.add(x);
+				index = (index + 1)%2;
+				result.add( nodes.get(index));
 			}
 		}
 
@@ -211,7 +217,7 @@ public class Graph<N extends Node> {
 	/**
 	 * Check if two Nodes are connected
 	 */
-	public boolean isConnected(Node n1, Node n2)
+	public boolean isConnected(N n1, N n2)
 	{
 		return (getEdge(n1,n2)!=null);
 	}
@@ -245,16 +251,16 @@ public class Graph<N extends Node> {
 	 * 
 	 * @return  A Set of all of the Edges in the Graph
 	 */
-	public Set<Edge> getEdges()
+	public Set<Edge<N>> getEdges()
 	{
-		return new HashSet<Edge>(mEdgeSet);
+		return new HashSet<Edge<N>>(mEdgeSet);
 	}
 	
 	//Prune away useless Edges.  This method removes any Edges that connect to non-existent Nodes,
 	//as well as Edges with a weight of zero.
 	protected void prune()
 	{
-		for (Edge e : mEdgeSet)
+		for (Edge<N> e : mEdgeSet)
 		{
 			if (e.getWeight()==0)
 			{
@@ -262,10 +268,10 @@ public class Graph<N extends Node> {
 			}
 			else
 			{
-				Node[] n = e.getNodes();
+				List<N> n = e.getNodes();
 
 				//Edge must connect two non-null nodes that are in this Graph
-				if ((n == null)||(n[0] == null)||(n[1] == null)||(!mNodeSet.contains(n[0]))||(!mNodeSet.contains(n[1])))
+				if ((n == null)||(n.get(0) == null)||(n.get(1) == null)||(!mNodeSet.contains(n.get(0)))||(!mNodeSet.contains(n.get(1))))
 				{
 					//Add the edge
 					mEdgeSet.remove(e);
