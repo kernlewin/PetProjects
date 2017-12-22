@@ -9,6 +9,8 @@ import java.util.Map;
 import ksk.ai.maze.Grid;
 import ksk.ai.maze.GridNode;
 import ksk.ai.maze.Maze;
+import ksk.ai.maze.MazeEvent;
+import ksk.ai.util.KEventListener;
 
 /**
  * Allows the drawing of a Maze in Swing.
@@ -18,7 +20,7 @@ import ksk.ai.maze.Maze;
  *
  */
 
-public class MazeGUI extends GridGUI implements MazeListener {
+public class MazeGUI extends GridGUI implements KEventListener<MazeEvent> {
 
 	//The maze that we are representing
 	Maze mMaze;
@@ -34,7 +36,7 @@ public class MazeGUI extends GridGUI implements MazeListener {
 		super(m.getGrid());
 
 		mMaze = m;
-		mMaze.addMazeListener(this);
+		mMaze.getEventBroadcaster().addListener(this);
 	}
 
 	@Override
@@ -92,8 +94,8 @@ public class MazeGUI extends GridGUI implements MazeListener {
 	}
 
 	@Override
-	public void onMazeEvent(MazeEvent e) {
+	public void onEvent(MazeEvent event) {
 		// TODO Auto-generated method stub
-		
+		repaint();
 	}
 }

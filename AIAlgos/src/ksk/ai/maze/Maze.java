@@ -1,8 +1,13 @@
 package ksk.ai.maze;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import ksk.ai.util.KEventBroadcaster;
+import ksk.ai.util.KEventProducer;
 
 /**
  * 
@@ -17,7 +22,7 @@ import java.util.Random;
  * nobody should be able to connect/disconnect nodes (some maze subclasses may modify this behaviour)
  */
 
-public class Maze {
+public class Maze implements KEventProducer<MazeEvent> {
 
 	//The grid that represents all of the nodes and connections of the maze
 	protected Grid mGrid;
@@ -26,7 +31,10 @@ public class Maze {
 	//Maintain a map of visited nodes to numbers (could be used if multiple objects are traversing
 	//to remember last visitor, or to count steps, etc)
 	protected Map<GridNode, Integer> mVisits;
-
+	
+	//Object in charge of maintaining list of listeners, and broadcasting Events
+	KEventBroadcaster mEventBroadcaster;
+	
 	/**
 	 * Contructor:  Create a maze of the given dimensions.
 	 * 
@@ -53,6 +61,9 @@ public class Maze {
 		//Initially no visitors
 		mVisits = new HashMap<GridNode, Integer>();
 
+		//Set up Event Broadcaster
+		mEventBroadcaster = new KEventBroadcaster<MazeEvent>();
+		
 		//Choose start and goal locations
 		Random r = new Random();
 		int startRow = r.nextInt(rows)+1;
@@ -122,6 +133,8 @@ public class Maze {
 		{
 			mVisits.put(n,visitor);
 		}
+		
+		mEventBroadcaster.broadcast(new MazeEvent(this, MazeEvent.EventType.NODE_EVENT, n));
 	}
 
 	/** Mark a node as unvisited
@@ -147,5 +160,10 @@ public class Maze {
 		}
 
 		return mVisits.get(n);
+	}
+
+	@Override
+	public KEventBroadcaster<MazeEvent> getEventBroadcaster() {
+		return mEventBroadcaster;
 	}
 }
